@@ -1,0 +1,10 @@
+# Pycace
+**__pycache__
+*.pyc
+
+# Virtual environment
+**env
+**.egg-info
+
+# mypy cahce
+**mypy
