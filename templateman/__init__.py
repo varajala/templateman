@@ -3,16 +3,23 @@ import sys
 import shutil
 import subprocess as subp
 import io
-import types
+import typing as types
 
 
 running = False
 working_dir: str = os.getcwd()
-project_info = {
-    'project_name': None,
-    'author_name': None,
+template_info = {
+    'name': None,
+    'author': None,
     'license': None,
 }
+required_args: types.Tuple[str] = tuple()
+
+
+def require_arguments(*args):
+    global required_args
+    required_args = args
+    # TODO check args at runtime
 
 
 def print_error(message: str, add_newline = True):
