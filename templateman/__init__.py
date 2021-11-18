@@ -1,6 +1,8 @@
 import os
 import sys
 import shutil
+import subprocess as subp
+import io
 import types
 
 
@@ -60,3 +62,16 @@ def copy_item(src: str, dst: str):
         print_error(str(err))
         abort()
 
+
+def run_command(cmd: types.List[str], change_path = '') -> types.Tuple[int, str]:
+    path = working_dir
+    if change_path:
+        path = os.path.abspath(os.path.join(working_dir, path))
+    
+    stream = io.StringIO()
+    proc = subp.run(cmd, cwd=path, stdout=stream, stderr=stream, text=True)
+    
+    stream.seek(0)
+    output = stream.read(),
+    stream.close()
+    return proc.returncode, output
