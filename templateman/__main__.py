@@ -23,6 +23,7 @@ def parse_args(args: types.List[str], options: dict):
         if arg not in options:
             templateman.print_error(f"Unknown option '{arg}'")
             templateman.abort()
+            return
         
         args_consumed, handle_options = options[arg]
         start = i + 1
@@ -30,6 +31,7 @@ def parse_args(args: types.List[str], options: dict):
         if len(args) < end:
             templateman.print_error(f"Option '{arg}' expected additional arguments")
             templateman.abort()
+            return
         
         handle_options(args[start:end])
         skip = end
@@ -45,12 +47,14 @@ def run(args: types.List[str]):
     if len(args) < 1:
         templateman.print_error("Command 'run' expected atleast one argument")
         templateman.abort()
+        return
     
     script_name = args[0]
     filepath = os.path.join(templateman.working_dir, script_name)
     if not os.path.exists(filepath) or not os.path.isfile(filepath) or not os.path.splitext(filepath)[1] == '.py':
         templateman.print_error(f"Path '{filepath}' does not exist or it is not a Python module")
         templateman.abort()
+        return
 
     def set_name(args: types.List[str]):
         templateman.template_info['name'] = args[0]

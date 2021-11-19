@@ -8,14 +8,14 @@ import typing as types
 
 running = False
 working_dir: str = os.getcwd()
-template_info = {
+template_info: types.Dict[str, types.Optional[str]] = {
     'name': None,
     'author': None,
     'license': None,
 }
 
 
-def require_arguments(*args: types.Tuple[str]):
+def require_arguments(*args):
     for arg in args:
         if template_info.get(arg) is None:
             print_error(f"Missing required argument '{arg}'")
@@ -32,8 +32,9 @@ def print_error(message: str, add_newline = True):
 
 def abort():
     global running
-    running = False
-    sys.exit(1)
+    if running:
+        running = False
+        sys.exit(1)
 
 
 def create_directory(name: str, create_path = False):
@@ -79,6 +80,6 @@ def run_command(cmd: types.List[str], change_path = '') -> types.Tuple[int, str]
     proc = subp.run(cmd, cwd=path, stdout=stream, stderr=stream, text=True)
     
     stream.seek(0)
-    output = stream.read(),
+    output = stream.read()
     stream.close()
     return proc.returncode, output
