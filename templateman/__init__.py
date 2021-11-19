@@ -13,13 +13,13 @@ template_info = {
     'author': None,
     'license': None,
 }
-required_args: types.Tuple[str] = tuple()
 
 
-def require_arguments(*args):
-    global required_args
-    required_args = args
-    # TODO check args at runtime
+def require_arguments(*args: types.Tuple[str]):
+    for arg in args:
+        if template_info.get(arg) is None:
+            print_error(f"Missing required argument '{arg}'")
+            abort()
 
 
 def print_error(message: str, add_newline = True):
