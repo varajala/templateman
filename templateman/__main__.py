@@ -13,8 +13,26 @@ def register_command(func: types.Callable[[types.List[str],], None]):
     return func
 
 
-def parse_args(args: types.List[str], options: types.Dict[str, int]) -> types.Dict[str, types.Optional[str]]:
-    pass
+def parse_args(args: types.List[str], options: dict):
+    skip = -1
+    for i in range(0, len(args)):
+        if skip > i:
+            continue
+        
+        arg = args[i]
+        if arg not in options:
+            templateman.print_error(f"Unknown option '{arg}'")
+            templateman.abort()
+        
+        args_consumed, handle_options = options[arg]
+        start = i + 1
+        end = start + args_consumed
+        if len(args) < end:
+            templateman.print_error(f"Option '{arg}' expected additional arguments")
+            templateman.abort()
+        
+        handle_options(args[start:end])
+        skip = end
 
 
 @register_command
@@ -33,6 +51,15 @@ def run(args: types.List[str]):
     if not os.path.exists(filepath) or not os.path.isfile(filepath) or not os.path.splitext(filepath)[1] == '.py':
         templateman.print_error(f"Path '{filepath}' does not exist or it is not a Python module")
         templateman.abort()
+
+    def set_name(args: types.List[str]):
+        templateman.template_info['name'] = args[0]
+
+    all_options = {
+        '--name': (1, set_name),
+        '-n': (1, set_name),
+    }
+    parse_args(args[1:], all_options)
 
     with open(filepath, 'r') as file:
         code = file.read()
