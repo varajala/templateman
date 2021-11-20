@@ -1,3 +1,9 @@
+"""
+Main entrypoint for the cli.
+
+Author: Valtteri Rajalainen
+"""
+
 import sys
 import typing as types
 

@@ -1,3 +1,9 @@
+"""
+Utilities for creating template scripts.
+
+Author: Valtteri Rajalainen
+"""
+
 import os
 import sys
 import shutil

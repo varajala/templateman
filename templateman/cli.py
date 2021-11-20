@@ -1,3 +1,9 @@
+"""
+The command line interface implementation.
+
+Author: Valtteri Rajalainen
+"""
+
 import sys
 import os
 import runpy
