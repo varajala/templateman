@@ -2,7 +2,7 @@ import microtest
 import contextlib
 import io
 
-from templateman.__main__ import parse_args
+from templateman.cli import parse_args
 
 
 @microtest.test

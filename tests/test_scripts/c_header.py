@@ -5,18 +5,18 @@ import templateman
 templateman.require_arguments('name')
 
 # Fetch the filename and write text into the file
-NAME = templateman.template_info['name']
-FILENAME = NAME + '.h'
-templateman.create_file(FILENAME)
+name = templateman.template_info['name']
+filename = name + '.h'
+filepath = os.path.join(templateman.template_info['output_directory'], filename)
 
 lines = '\n'.join([
-    f'#ifndef {NAME.upper()}_H',
-    f'#define {NAME.upper()}_H',
+    f'#ifndef {name.upper()}_H',
+    f'#define {name.upper()}_H',
     '',
     '',
     '#endif',
     ''
 ])
 
-with open(os.path.join(templateman.working_dir, FILENAME), 'w') as file:
+with open(filepath, 'w') as file:
     file.write(lines)

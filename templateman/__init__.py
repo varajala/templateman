@@ -2,16 +2,17 @@ import os
 import sys
 import shutil
 import subprocess as subp
-import io
+import tempfile
 import typing as types
 
 
 running = False
 working_dir: str = os.getcwd()
 template_info: types.Dict[str, types.Optional[str]] = {
-    'name': None,
-    'author': None,
-    'license': None,
+    'name':             'UNKNOWN',
+    'output_directory': working_dir,
+    'author':           'UNKNOWN',
+    'license':          'UNKNOWN',
 }
 
 
@@ -37,23 +38,21 @@ def abort():
         sys.exit(1)
 
 
-def create_directory(name: str, create_path = False):
-    dir_path = os.path.join(working_dir, name)
+def create_directory(path: str, create_dirs = False):
     try:
-        if create_path:
-            os.makedirs(dir_path)
+        if create_dirs:
+            os.makedirs(path)
         else:
-            os.mkdir(dir_path)
+            os.mkdir(path)
     
     except (OSError, PermissionError) as err:
         print_error(str(err))
         abort()
 
 
-def create_file(name: str):
-    filepath = os.path.join(working_dir, name)
+def create_file(path: str):
     try:
-        open(filepath, 'x').close()
+        open(path, 'x').close()
     except (OSError, PermissionError) as err:
         print_error(str(err))
         abort()
@@ -71,15 +70,9 @@ def copy_item(src: str, dst: str):
         abort()
 
 
-def run_command(cmd: types.List[str], change_path = '') -> types.Tuple[int, str]:
-    path = working_dir
-    if change_path:
-        path = os.path.abspath(os.path.join(working_dir, path))
-    
-    stream = io.StringIO()
-    proc = subp.run(cmd, cwd=path, stdout=stream, stderr=stream, text=True)
-    
-    stream.seek(0)
-    output = stream.read()
-    stream.close()
-    return proc.returncode, output
+def run_command(cmd: types.List[str], path = working_dir) -> types.Tuple[int, str]:
+    with tempfile.TemporaryFile(mode='w+') as file:
+        proc = subp.run(cmd, cwd=path, stdout=file, stderr=file, text=True)
+        file.seek(0)
+        return proc.returncode, file.read()
+
