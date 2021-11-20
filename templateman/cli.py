@@ -6,8 +6,6 @@ import templateman
 
 
 TEMPLATE_DIRECTORY_ENV_VAR = 'PY_TEMPLATES_DIR'
-DEFAULT_TEMPLATE_DIRECTORY = os.path.join(os.path.expanduser('~'), '.py-templates')
-template_dir = os.environ.get(TEMPLATE_DIRECTORY_ENV_VAR, DEFAULT_TEMPLATE_DIRECTORY)
 
 commands: types.Dict[str, types.Callable[[types.List[str],], None]] = dict()
 
@@ -54,15 +52,24 @@ def help(args: types.List[str]):
 
 @register_command
 def install(args: types.List[str]):
-    # if not os.path.exists(template_dir):
-    #     try:
-    #         os.mkdir(template_dir)
-    #     except (OSError, PermissionError) as err:
-    #         error_message = 'Failed to create directory for storing template scripts:'
-    #         error_message += f'\n{err.__class__.__name__}: {str(err)}'
-    #         templateman.print_error(error_message)
-    #         templateman.abort()
-    #         return
+    try:
+        default_template_directory = os.path.join(os.path.expanduser('~'), '.py-templates')
+    except Exception:
+        error_message = 'Can\'t resolve users home directory for storing template scripts'
+        templateman.print_error(error_message)
+        templateman.abort()
+        return
+    
+    template_dir = os.environ.get(TEMPLATE_DIRECTORY_ENV_VAR, default_template_directory)
+    if not os.path.exists(template_dir):
+        try:
+            os.mkdir(template_dir)
+        except (OSError, PermissionError) as err:
+            error_message = 'Failed to create directory for storing template scripts:'
+            error_message += f'\n{err.__class__.__name__}: {str(err)}'
+            templateman.print_error(error_message)
+            templateman.abort()
+            return
     
     if len(args) < 1:
         templateman.print_error("Command 'install' expected atleast one argument")
