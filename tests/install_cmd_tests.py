@@ -1,6 +1,9 @@
-import microtest
 import io
+import os
 import contextlib
+import tempfile
+import microtest
+import microtest.utils as utils
 import templateman.cli as cli
 
 
@@ -51,6 +54,32 @@ def test_template_directory_config():
                     cli.install(list())
                     assert directory_exists_check
                     assert directory_created
+
+
+@microtest.test
+def test_valid_install():
+    with utils.create_temp_dir() as templates_path:
+        env_dict = { cli.TEMPLATE_DIRECTORY_ENV_VAR: templates_path }
+        with tempfile.NamedTemporaryFile(suffix='.py') as script_file:
+            with microtest.patch(os, environ = env_dict):
+                cli.install([script_file.name])
+                templates = os.listdir(templates_path)
+                
+                _, filename = os.path.split(script_file.name)
+                filename, _ = os.path.splitext(filename)
+                assert filename in templates
+
+
+@microtest.test
+def test_install_non_existing_file():
+    with io.StringIO() as stream:
+        with contextlib.redirect_stderr(stream):
+            with utils.create_temp_dir() as templates_path:
+                env_dict = { cli.TEMPLATE_DIRECTORY_ENV_VAR: templates_path }
+                with microtest.patch(os, environ = env_dict):
+                    cli.install(['script.py'])
+                    output = stream.getvalue()
+                    assert 'path does not exist' in output
 
 
 if __name__ == '__main__':

@@ -6,6 +6,7 @@ Author: Valtteri Rajalainen
 
 import sys
 import os
+import shutil
 import runpy
 import typing as types
 import templateman
@@ -82,7 +83,28 @@ def install(args: types.List[str]):
         templateman.abort()
         return
 
-    print('INSTALL', args[0])
+    filepath = args[0]
+    if not os.path.isabs(filepath):
+        filepath = os.path.join(templateman.working_dir, filepath)
+    
+    if not os.path.exists(filepath):
+        templateman.print_error("Given path does not exist")
+        templateman.abort()
+        return
+
+    _, filename = os.path.split(filepath)
+    filename, _ = os.path.splitext(filename)
+
+    # TODO: verify that the file is Python code
+
+    try:
+        shutil.copy(filepath, os.path.join(template_dir, filename))
+    except (OSError, PermissionError, FileExistsError) as err:
+        error_message = 'Install failed:\n'
+        error_message += f'{err.__class__.__name__}: {str(err)}'
+        templateman.print_error(error_message)
+        templateman.abort()
+        return
 
 
 @register_command
@@ -96,7 +118,6 @@ def run(args: types.List[str]):
     filepath = os.path.join(templateman.working_dir, args[0])
     if suffix == '':
         # TODO: search for installed templates
-        # filepath = os.path.join(--, filename + '.py')
         pass
 
     def set_name(args: types.List[str]):
