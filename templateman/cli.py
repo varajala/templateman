@@ -5,6 +5,10 @@ import typing as types
 import templateman
 
 
+TEMPLATE_DIRECTORY_ENV_VAR = 'PY_TEMPLATES_DIR'
+DEFAULT_TEMPLATE_DIRECTORY = os.path.join(os.path.expanduser('~'), '.py-templates')
+template_dir = os.environ.get(TEMPLATE_DIRECTORY_ENV_VAR, DEFAULT_TEMPLATE_DIRECTORY)
+
 commands: types.Dict[str, types.Callable[[types.List[str],], None]] = dict()
 
 
@@ -50,7 +54,22 @@ def help(args: types.List[str]):
 
 @register_command
 def install(args: types.List[str]):
-    print('INSTALL')
+    # if not os.path.exists(template_dir):
+    #     try:
+    #         os.mkdir(template_dir)
+    #     except (OSError, PermissionError) as err:
+    #         error_message = 'Failed to create directory for storing template scripts:'
+    #         error_message += f'\n{err.__class__.__name__}: {str(err)}'
+    #         templateman.print_error(error_message)
+    #         templateman.abort()
+    #         return
+    
+    if len(args) < 1:
+        templateman.print_error("Command 'install' expected atleast one argument")
+        templateman.abort()
+        return
+
+    print('INSTALL', args[0])
 
 
 @register_command
@@ -70,12 +89,18 @@ def run(args: types.List[str]):
     def set_name(args: types.List[str]):
         templateman.template_info['name'] = args[0]
 
+    def set_author(args: types.List[str]):
+        templateman.template_info['author'] = args[0]
+
     def set_output_directory(args: types.List[str]):
         templateman.template_info['output_directory'] = args[0]
 
     all_options = {
         '--name': (1, set_name),
         '-n': (1, set_name),
+
+        '--author': (1, set_author),
+        '-a': (1, set_author),
 
         '--output-directory': (1, set_output_directory),
         '-o': (1, set_output_directory),

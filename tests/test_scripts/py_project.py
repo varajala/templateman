@@ -25,8 +25,8 @@ import os
 import sys
 import templateman
 
-# Abort if no --name flag is given
-templateman.require_arguments('name')
+# Abort if name or author are missing from template_info
+templateman.require_arguments('name', 'author')
 
 name = templateman.template_info['name']
 root_path = os.path.join(templateman.template_info['output_directory'], name)

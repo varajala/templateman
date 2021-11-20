@@ -12,13 +12,12 @@ template_info: types.Dict[str, types.Optional[str]] = {
     'name':             'UNKNOWN',
     'output_directory': working_dir,
     'author':           'UNKNOWN',
-    'license':          'UNKNOWN',
 }
 
 
 def require_arguments(*args):
     for arg in args:
-        if template_info.get(arg) is None:
+        if template_info.get(arg) == 'UNKNOWN':
             print_error(f"Missing required argument '{arg}'")
             abort()
 
