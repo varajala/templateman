@@ -52,6 +52,15 @@ def parse_args(args: types.List[str], options: dict):
         skip = end
 
 
+def resolve_template_directory() -> types.Optional[str]:
+    try:
+        default_directory = os.path.join(os.path.expanduser('~'), '.py-templates')
+        return os.environ.get(TEMPLATE_DIRECTORY_ENV_VAR, default_directory)
+    
+    except Exception:
+        return None
+
+
 @register_command
 def help(args: types.List[str]):
     print('HELP')
@@ -59,15 +68,13 @@ def help(args: types.List[str]):
 
 @register_command
 def install(args: types.List[str]):
-    try:
-        default_template_directory = os.path.join(os.path.expanduser('~'), '.py-templates')
-    except Exception:
+    template_dir = resolve_template_directory()
+    if template_dir is None:
         error_message = 'Can\'t resolve users home directory for storing template scripts'
         templateman.print_error(error_message)
         templateman.abort()
         return
     
-    template_dir = os.environ.get(TEMPLATE_DIRECTORY_ENV_VAR, default_template_directory)
     if not os.path.exists(template_dir):
         try:
             os.mkdir(template_dir)
@@ -116,9 +123,22 @@ def run(args: types.List[str]):
     
     filename, suffix = os.path.splitext(args[0])
     filepath = os.path.join(templateman.working_dir, args[0])
+    
     if suffix == '':
-        # TODO: search for installed templates
-        pass
+        template_dir = resolve_template_directory()
+        if template_dir is None:
+            error_message = 'Can\'t resolve users home directory for storing template scripts'
+            templateman.print_error(error_message)
+            templateman.abort()
+            return
+        
+        try:
+            installed_templates = set(os.listdir(template_dir))
+        except Exception:
+            pass
+        else:
+            if filename in installed_templates:
+                filepath = os.path.join(template_dir, filename)
 
     def set_name(args: types.List[str]):
         templateman.template_info['name'] = args[0]
@@ -140,6 +160,12 @@ def run(args: types.List[str]):
         '-o': (1, set_output_directory),
     }
     parse_args(args[1:], all_options)
+
+    if not os.path.exists(filepath):
+        error_message = f"Can't find file '{filepath}'"
+        templateman.print_error(error_message)
+        templateman.abort()
+        return
 
     with open(filepath, 'r') as file:
         code = file.read()
