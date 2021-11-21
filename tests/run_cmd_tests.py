@@ -72,5 +72,18 @@ def test_running_non_existent_scripts():
             assert "can't find file" in output.lower()
 
 
+@microtest.test
+def test_running_scripts_with_restricted_permissions():
+    SCRIPT_NAME = 'script.py'
+    with utils.create_temp_dir(files=[SCRIPT_NAME]) as script_dir:
+        SCRIPT_PATH = os.path.join(script_dir, SCRIPT_NAME)
+        with utils.set_as_unauthorized(SCRIPT_PATH):
+            with io.StringIO() as stream:
+                with contextlib.redirect_stderr(stream):
+                    cli.run([SCRIPT_PATH])
+                output = stream.getvalue()
+                assert "can't open file" in output.lower()
+
+
 if __name__ == '__main__':
     microtest.run()

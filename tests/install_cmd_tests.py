@@ -79,7 +79,18 @@ def test_install_non_existing_file():
                 with microtest.patch(os, environ = env_dict):
                     cli.install(['script.py'])
                     output = stream.getvalue()
-                    assert 'path does not exist' in output
+                    assert 'path does not exist' in output.lower()
+
+
+@microtest.test
+def test_error_handling_when_user_home_directory_cant_be_resolved():
+    def raise_exception(*args):
+        raise Exception
+    
+    with microtest.patch(cli.os.path, expanduser = raise_exception):
+        path = cli.resolve_template_directory()
+        assert path is None
+    
 
 
 if __name__ == '__main__':

@@ -8,6 +8,7 @@ import sys
 import os
 import shutil
 import runpy
+import contextlib
 import typing as types
 import templateman
 
@@ -15,6 +16,44 @@ import templateman
 TEMPLATE_DIRECTORY_ENV_VAR = 'PY_TEMPLATES_DIR'
 
 commands: types.Dict[str, types.Callable[[types.List[str],], None]] = dict()
+
+
+def mkdir_exc_safe(path: str) -> types.Optional[str]:
+    error = None
+    try:
+        os.mkdir(path)
+    except Exception as err:
+        error = f"{err.__class__.__name__}: {str(err)}"
+    return error
+
+
+def copy_file_exc_safe(src: str, dst: str) -> types.Optional[str]:
+    error = None
+    try:
+        shutil.copy(src, dst)
+    except Exception as err:
+        error = f"{err.__class__.__name__}: {str(err)}"
+    return error
+
+
+def list_directory_exc_safe(path: str) -> types.Tuple[types.Optional[list], types.Optional[str]]:
+    error = None
+    items = None
+    try:
+        items = os.listdir(path)
+    except Exception as err:
+        error = f"{err.__class__.__name__}: {str(err)}"
+    return items, error
+
+
+def open_file_exc_safe(path: str, mode = 'r', *args) -> types.Tuple[object, types.Optional[str]]:
+    file = None
+    error = None
+    try:
+        file = open(path, mode, *args)
+    except Exception as err:
+        error = f"{err.__class__.__name__}: {str(err)}"
+    return file, error
 
 
 def register_command(func: types.Callable[[types.List[str],], None]):
@@ -53,12 +92,11 @@ def parse_args(args: types.List[str], options: dict):
 
 
 def resolve_template_directory() -> types.Optional[str]:
-    try:
+    path = None
+    with contextlib.suppress(Exception):
         default_directory = os.path.join(os.path.expanduser('~'), '.py-templates')
-        return os.environ.get(TEMPLATE_DIRECTORY_ENV_VAR, default_directory)
-    
-    except Exception:
-        return None
+        path =  os.environ.get(TEMPLATE_DIRECTORY_ENV_VAR, default_directory)
+    return path
 
 
 @register_command
@@ -76,11 +114,10 @@ def install(args: types.List[str]):
         return
     
     if not os.path.exists(template_dir):
-        try:
-            os.mkdir(template_dir)
-        except (OSError, PermissionError) as err:
+        error = mkdir_exc_safe(template_dir)
+        if error:
             error_message = 'Failed to create directory for storing template scripts:'
-            error_message += f'\n{err.__class__.__name__}: {str(err)}'
+            error_message += error
             templateman.print_error(error_message)
             templateman.abort()
             return
@@ -104,11 +141,10 @@ def install(args: types.List[str]):
 
     # TODO: verify that the file is Python code
 
-    try:
-        shutil.copy(filepath, os.path.join(template_dir, filename))
-    except (OSError, PermissionError, FileExistsError) as err:
+    error = copy_file_exc_safe(filepath, os.path.join(template_dir, filename))
+    if error:
         error_message = 'Install failed:\n'
-        error_message += f'{err.__class__.__name__}: {str(err)}'
+        error_message += error
         templateman.print_error(error_message)
         templateman.abort()
         return
@@ -132,13 +168,9 @@ def run(args: types.List[str]):
             templateman.abort()
             return
         
-        try:
-            installed_templates = set(os.listdir(template_dir))
-        except Exception:
-            pass
-        else:
-            if filename in installed_templates:
-                filepath = os.path.join(template_dir, filename)
+        installed_templates, error = list_directory_exc_safe(template_dir)
+        if not error and filename in installed_templates:
+            filepath = os.path.join(template_dir, filename)
 
     def set_name(args: types.List[str]):
         templateman.template_info['name'] = args[0]
@@ -167,12 +199,22 @@ def run(args: types.List[str]):
         templateman.abort()
         return
 
-    with open(filepath, 'r') as file:
+    file, error = open_file_exc_safe(filepath, 'r')
+    if error:
+        error_message = f"Can't open file '{filepath}'"
+        templateman.print_error(error_message)
+        templateman.abort()
+        return
+
+    try:
         code = file.read()
-        try:
-            exec(compile(code, filename, 'exec'))
-        except Exception as err:
-            error_message = 'There were errors during the execution of the script:'
-            error_message += f'\n{err.__class__.__name__}: {str(err)}'
-            templateman.print_error(error_message)
-            templateman.abort()
+        exec(compile(code, filename, 'exec'))
+    
+    except Exception as err:
+        error_message = 'There were errors during the execution of the script:'
+        error_message += f'\n{err.__class__.__name__}: {str(err)}'
+        templateman.print_error(error_message)
+        templateman.abort()
+    
+    finally:
+        file.close()
