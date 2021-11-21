@@ -46,7 +46,7 @@ def list_directory_exc_safe(path: str) -> types.Tuple[types.List[str], types.Opt
     return items, error
 
 
-def open_file_exc_safe(path: str, mode = 'r', *args) -> types.Tuple[types.Optional[types.IO], types.Optional[str]]:
+def open_file_exc_safe(path: str, mode = 'r', *args) -> types.Tuple[object, types.Optional[str]]:
     file = None
     error = None
     try:
@@ -207,7 +207,11 @@ def run(args: types.List[str]):
         return
 
     try:
+<<<<<<< HEAD
         code = file.read() # type: ignore
+=======
+        code = file.read()
+>>>>>>> f588fac52a5e929d9a999af37ef095c49c03cbf9
         exec(compile(code, filename, 'exec'))
     
     except Exception as err:
@@ -217,4 +221,8 @@ def run(args: types.List[str]):
         templateman.abort()
     
     finally:
+<<<<<<< HEAD
         file.close() # type: ignore
+=======
+        file.close()
+>>>>>>> f588fac52a5e929d9a999af37ef095c49c03cbf9
