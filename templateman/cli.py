@@ -46,7 +46,7 @@ def list_directory_exc_safe(path: str) -> types.Tuple[types.List[str], types.Opt
     return items, error
 
 
-def open_file_exc_safe(path: str, mode = 'r', *args) -> types.Tuple[types.Optional[types.IO], types.Optional[str]]:
+def open_file_exc_safe(path: str, mode = 'r', *args) -> types.Tuple[object, types.Optional[str]]:
     file = None
     error = None
     try:
