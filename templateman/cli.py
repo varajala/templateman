@@ -108,7 +108,37 @@ def help(args: types.List[str]):
 
 @register_command('list')
 def list_installed_scripts(args: types.List[str]):
-    pass
+    template_dir = resolve_template_directory()
+    if template_dir is None:
+        error_message = 'Can\'t resolve users home directory for storing template scripts'
+        templateman.print_error(error_message)
+        templateman.abort()
+        return
+
+    if not os.path.exists(template_dir):
+        error = mkdir_exc_safe(template_dir)
+        if error:
+            error_message = 'Failed to create directory for storing template scripts:\n'
+            error_message += error
+            templateman.print_error(error_message)
+            templateman.abort()
+            return
+
+    installed_templates, error = list_directory_exc_safe(template_dir)
+    if error:
+        error_message = 'Unexpected error when listing installed templates:\n'
+        error_message += error
+        templateman.print_error(error_message)
+        templateman.abort()
+        return
+
+    print('Templates stored in directory:')
+    print(template_dir)
+    print()
+    for template_name in installed_templates:
+        print('> ', template_name)
+    if installed_templates:
+        print()
 
 
 @register_command('install')
@@ -123,7 +153,7 @@ def install_script(args: types.List[str]):
     if not os.path.exists(template_dir):
         error = mkdir_exc_safe(template_dir)
         if error:
-            error_message = 'Failed to create directory for storing template scripts:'
+            error_message = 'Failed to create directory for storing template scripts:\n'
             error_message += error
             templateman.print_error(error_message)
             templateman.abort()
