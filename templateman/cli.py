@@ -56,9 +56,11 @@ def open_file_exc_safe(path: str, mode = 'r', *args) -> types.Tuple[object, type
     return file, error
 
 
-def register_command(func: types.Callable[[types.List[str],], None]):
-    commands[func.__name__] = func
-    return func
+def register_command(alias: str):
+    def wrapper(func: types.Callable[[types.List[str],], None]):
+        commands[alias] = func
+        return func
+    return wrapper
 
 
 def exec_command(command: str, args: types.List[str]):
@@ -99,13 +101,18 @@ def resolve_template_directory() -> types.Optional[str]:
     return path
 
 
-@register_command
+@register_command('help')
 def help(args: types.List[str]):
     print('HELP')
 
 
-@register_command
-def install(args: types.List[str]):
+@register_command('list')
+def list_installed_scripts(args: types.List[str]):
+    pass
+
+
+@register_command('install')
+def install_script(args: types.List[str]):
     template_dir = resolve_template_directory()
     if template_dir is None:
         error_message = 'Can\'t resolve users home directory for storing template scripts'
@@ -150,8 +157,8 @@ def install(args: types.List[str]):
         return
 
 
-@register_command
-def run(args: types.List[str]):
+@register_command('run')
+def run_script(args: types.List[str]):
     if len(args) < 1:
         templateman.print_error("Command 'run' expected atleast one argument")
         templateman.abort()

@@ -22,10 +22,10 @@ def test_template_directory_creating():
         with contextlib.redirect_stderr(stream):
             with microtest.patch(cli.os, mkdir = dummy_mkdir):
                 with microtest.patch(cli.os.path, exists = dummy_path_exists):
-                    cli.install(list())
+                    cli.install_script(list())
                     assert mkdir_called == 1
                     
-                    cli.install(list())
+                    cli.install_script(list())
                     assert mkdir_called == 1
 
 
@@ -51,7 +51,7 @@ def test_template_directory_config():
         with contextlib.redirect_stderr(stream):
             with microtest.patch(cli.os, environ = env_dict, mkdir = dummy_mkdir):
                 with microtest.patch(cli.os.path, exists = dummy_path_exists):
-                    cli.install(list())
+                    cli.install_script(list())
                     assert directory_exists_check
                     assert directory_created
 
@@ -62,7 +62,7 @@ def test_valid_install():
         env_dict = { cli.TEMPLATE_DIRECTORY_ENV_VAR: templates_path }
         with tempfile.NamedTemporaryFile(suffix='.py') as script_file:
             with microtest.patch(os, environ = env_dict):
-                cli.install([script_file.name])
+                cli.install_script([script_file.name])
                 templates = os.listdir(templates_path)
                 
                 _, filename = os.path.split(script_file.name)
@@ -77,7 +77,7 @@ def test_install_non_existing_file():
             with utils.create_temp_dir() as templates_path:
                 env_dict = { cli.TEMPLATE_DIRECTORY_ENV_VAR: templates_path }
                 with microtest.patch(os, environ = env_dict):
-                    cli.install(['script.py'])
+                    cli.install_script(['script.py'])
                     output = stream.getvalue()
                     assert 'path does not exist' in output.lower()
 

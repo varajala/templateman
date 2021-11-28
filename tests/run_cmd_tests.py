@@ -17,7 +17,7 @@ def test_running_uninstalled_scripts():
         
         with io.StringIO() as stream:
             with contextlib.redirect_stdout(stream):
-                cli.run([os.path.join(script_dir, SCRIPT_NAME)])
+                cli.run_script([os.path.join(script_dir, SCRIPT_NAME)])
         
             output = stream.getvalue()
             assert 'module executed' in output
@@ -35,7 +35,7 @@ def test_running_installed_scripts():
         with microtest.patch(cli.os, environ = env_dict):
             with io.StringIO() as stream:
                 with contextlib.redirect_stdout(stream):
-                    cli.run([SCRIPT_NAME])
+                    cli.run_script([SCRIPT_NAME])
             
                 output = stream.getvalue()
                 assert 'module executed' in output
@@ -56,7 +56,7 @@ def test_argument_passing():
         
         with io.StringIO() as stream:
             with contextlib.redirect_stdout(stream):
-                cli.run([SCRIPT_PATH, '--name', 'NAME'])
+                cli.run_script([SCRIPT_PATH, '--name', 'NAME'])
         
             output = stream.getvalue()
             assert 'name = NAME' in output
@@ -67,7 +67,7 @@ def test_running_non_existent_scripts():
     SCRIPT_NAME = 'script.py'
     with io.StringIO() as stream:
         with contextlib.redirect_stderr(stream):
-            cli.run([SCRIPT_NAME])
+            cli.run_script([SCRIPT_NAME])
             output = stream.getvalue()
             assert "can't find file" in output.lower()
 
@@ -80,7 +80,7 @@ def test_running_scripts_with_restricted_permissions():
         with utils.set_as_unauthorized(SCRIPT_PATH):
             with io.StringIO() as stream:
                 with contextlib.redirect_stderr(stream):
-                    cli.run([SCRIPT_PATH])
+                    cli.run_script([SCRIPT_PATH])
                 output = stream.getvalue()
                 assert "can't open file" in output.lower()
 
