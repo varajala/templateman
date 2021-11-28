@@ -15,7 +15,7 @@ def test_template_listing():
             env_dict = { cli.TEMPLATE_DIRECTORY_ENV_VAR: dir_path }
             with microtest.patch(cli.os, environ=env_dict):
                 with contextlib.redirect_stdout(stream):
-                    cli.list_installed_scripts(list())
+                    cli.list_installed_templates(list())
             output = stream.getvalue()
             assert 'template_1' in output
             assert 'template_2' in output

@@ -56,6 +56,14 @@ def open_file_exc_safe(path: str, mode = 'r', *args) -> types.Tuple[object, type
     return file, error
 
 
+def remove_file_exc_safe(path: str) -> types.Optional[str]:
+    try:
+        os.remove(path)
+        return None
+    except (OSError, PermissionError) as err:
+        return str(err)
+
+
 def register_command(alias: str):
     def wrapper(func: types.Callable[[types.List[str],], None]):
         commands[alias] = func
@@ -106,8 +114,40 @@ def help(args: types.List[str]):
     print('HELP')
 
 
+@register_command('remove')
+def remove_installed_template(args: types.List[str]):
+    template_dir = resolve_template_directory()
+    if template_dir is None:
+        error_message = 'Can\'t resolve users home directory for storing template scripts'
+        templateman.print_error(error_message)
+        templateman.abort()
+        return
+
+    if len(args) == 0:
+        templateman.print_error("Command 'remove' expected atleast one argument")
+        templateman.abort()
+        return
+
+    template_path = os.path.join(template_dir, args[0])
+    if not os.path.exists(template_path):
+        templateman.print_error(f"No template installed with name '{args[0]}'")
+        templateman.abort()
+        return
+
+    print(f"Are you sure you want to remove file '{template_path}' premanently?")
+    ans = input('Input Y/y to remove this file: ')
+    if ans.lower() == 'y':
+        error = remove_file_exc_safe(template_path)
+        if error:
+            error_message = 'Unexpected error when removing file:\n'
+            error_message += error
+            templateman.print_error(error_message)
+            templateman.abort()
+            return
+
+
 @register_command('list')
-def list_installed_scripts(args: types.List[str]):
+def list_installed_templates(args: types.List[str]):
     template_dir = resolve_template_directory()
     if template_dir is None:
         error_message = 'Can\'t resolve users home directory for storing template scripts'
@@ -142,7 +182,7 @@ def list_installed_scripts(args: types.List[str]):
 
 
 @register_command('install')
-def install_script(args: types.List[str]):
+def install_template(args: types.List[str]):
     template_dir = resolve_template_directory()
     if template_dir is None:
         error_message = 'Can\'t resolve users home directory for storing template scripts'
@@ -188,7 +228,7 @@ def install_script(args: types.List[str]):
 
 
 @register_command('run')
-def run_script(args: types.List[str]):
+def run_template(args: types.List[str]):
     if len(args) < 1:
         templateman.print_error("Command 'run' expected atleast one argument")
         templateman.abort()
