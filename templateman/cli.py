@@ -12,7 +12,7 @@ import contextlib
 import typing as types
 import templateman
 
-
+VERSION = '0.0.1a'
 TEMPLATE_DIRECTORY_ENV_VAR = 'PY_TEMPLATES_DIR'
 
 commands: types.Dict[str, types.Callable[[types.List[str],], None]] = dict()
@@ -110,12 +110,43 @@ def resolve_template_directory() -> types.Optional[str]:
 
 
 @register_command('help')
-def help(args: types.List[str]):
-    print('HELP')
+def print_help(args: types.List[str]):
+    """Show this help information."""
+    def format_command_info(name: str, docstring: str = None) -> str:
+        if docstring is None:
+            return '  > ' + name + ': ' + 'No description available...\n'
+        return '  > ' + name + ': ' + docstring.strip() + '\n'
+
+    commands_help = [format_command_info(name, func.__doc__) for name, func in commands.items()]
+    help_text = [
+        f'TemplateManager, version: {VERSION}',
+        '',
+        'A simple utility to manage and run Python scripts for automating',
+        'project creation, boilerplate code and much more.'
+        '',
+        'Usage: ',
+        '',
+        '   $ python -m templateman [command] [arguments]',
+        '',
+        '',
+        'Implemented commands:',
+        '',
+        *commands_help,
+    ]
+    print('\n'.join(help_text))
 
 
 @register_command('remove')
 def remove_installed_template(args: types.List[str]):
+    """
+    Remove installed template. This will remove the file from the
+    template directory permanently.
+
+    USAGE:
+    
+        $ python -m templateman remove [template-name]
+
+    """
     template_dir = resolve_template_directory()
     if template_dir is None:
         error_message = 'Can\'t resolve users home directory for storing template scripts'
@@ -148,6 +179,7 @@ def remove_installed_template(args: types.List[str]):
 
 @register_command('list')
 def list_installed_templates(args: types.List[str]):
+    """List all installed templates."""
     template_dir = resolve_template_directory()
     if template_dir is None:
         error_message = 'Can\'t resolve users home directory for storing template scripts'
@@ -183,6 +215,15 @@ def list_installed_templates(args: types.List[str]):
 
 @register_command('install')
 def install_template(args: types.List[str]):
+    """
+    Install a template script. This creates a copy of the provided file
+    into the template directory.
+
+    USAGE:
+
+        $ python -m templateman install [filepath]
+    
+    """
     template_dir = resolve_template_directory()
     if template_dir is None:
         error_message = 'Can\'t resolve users home directory for storing template scripts'
@@ -229,6 +270,26 @@ def install_template(args: types.List[str]):
 
 @register_command('run')
 def run_template(args: types.List[str]):
+    """
+    Execute a template script. If the given filepath has no suffix, an installed
+    template is searched. If file has any suffix, the current working directory is
+    searched.
+
+    USAGE:
+
+        $ python -m templateman run [template-name] [arguments]
+
+    ARGUMENTS:
+        -o / --output-directory: Provide a output directory path for the script.
+                                 Default is the current working directory.
+
+        -n / --name: Provide a name for the script. This should be used to name
+                     the generated file, project or other assets.
+
+        -a / --author: Provide author name for the script. This should be used
+                       in config/setup files in place of project's author name.
+
+    """
     if len(args) < 1:
         templateman.print_error("Command 'run' expected atleast one argument")
         templateman.abort()

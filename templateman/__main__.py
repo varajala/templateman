@@ -13,7 +13,7 @@ import templateman.cli as cli
 
 def main(args: types.List[str]) -> int:
     if len(args) < 1:
-        cli.help(None)
+        cli.print_help(None)
         return 0
     
     command = args[0]
