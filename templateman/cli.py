@@ -281,13 +281,15 @@ def run_template(args: types.List[str]):
 
     ARGUMENTS:
         -o / --output-directory: Provide a output directory path for the script.
-                                 Default is the current working directory.
+                                 Default value is the current working directory.
 
         -n / --name: Provide a name for the script. This should be used to name
                      the generated file, project or other assets.
+                     Default value is "UNKNOWN".
 
         -a / --author: Provide author name for the script. This should be used
                        in config/setup files in place of project's author name.
+                       Default value is "UNKNOWN".
 
     """
     if len(args) < 1:
