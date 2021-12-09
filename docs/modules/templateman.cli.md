@@ -7,7 +7,7 @@ The command line interface implementation.
 Author: Valtteri Rajalainen
 """
 
-VERSION: '0.0.1a'
+VERSION: '1.0.0'
 TEMPLATE_DIRECTORY_ENV_VAR: 'PY_TEMPLATES_DIR'
 commands: dict()
 

@@ -12,7 +12,7 @@ import contextlib
 import typing as types
 import templateman
 
-VERSION = '0.0.1a'
+VERSION = '1.0.0'
 TEMPLATE_DIRECTORY_ENV_VAR = 'PY_TEMPLATES_DIR'
 
 commands: types.Dict[str, types.Callable[[types.List[str],], None]] = dict()
@@ -256,8 +256,6 @@ def install_template(args: types.List[str]):
 
     _, filename = os.path.split(filepath)
     filename, _ = os.path.splitext(filename)
-
-    # TODO: verify that the file is Python code
 
     error = copy_file_exc_safe(filepath, os.path.join(template_dir, filename))
     if error:
